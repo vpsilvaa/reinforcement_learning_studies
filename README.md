@@ -49,7 +49,7 @@ A interface onde você assiste à IA "ganhando vida":
 
 1.  **Instale as dependências necessárias:**
     ```bash
-    pip install flask flask-socketio eventlet gymnasium stable-baselines3 shimmy numpy
+    pip install -r requirements.txt
     ```
 
 2.  **Inicie o servidor de treinamento:**
