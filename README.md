@@ -8,7 +8,7 @@ Este projeto é um ecossistema completo para o desenvolvimento e visualização 
 
 O projeto é dividido em três pilares principais que trabalham em conjunto:
 
-1.  **O Cérebro (IA):** No arquivo `app.py`, utilizamos o algoritmo **PPO (Proximal Policy Optimization)** da biblioteca *Stable Baselines3*. A IA recebe dados de sensores e decide a aceleração e o ângulo do volante.
+1.  **O Cérebro (IA):** No arquivo `cal_rl.py`, utilizamos o algoritmo **PPO (Proximal Policy Optimization)** da biblioteca *Stable Baselines3*. A IA recebe dados de sensores e decide a aceleração e o ângulo do volante.
 2.  **O Ambiente (Simulação):** Criamos um ambiente customizado usando **Gymnasium**. Ele simula a física do carro, as colisões com prédios e calcula as recompensas (pontuação) da IA.
 3.  **A Visualização (Web):** Através de **WebSockets (SocketIO)**, os dados do Python são enviados em tempo real para o navegador, permitindo assistir ao treino ao vivo.
 
@@ -16,7 +16,7 @@ O projeto é dividido em três pilares principais que trabalham em conjunto:
 
 ## 📂 Descrição dos Arquivos
 
-### 🧠 1. `app.py` (O Servidor e a IA)
+### 🧠 1. `cal_rl.py` (O Servidor e a IA)
 Este é o núcleo do projeto. Ele contém:
 - **CityEnv:** A classe que define as regras do mundo (colisões, sensores Lidar e movimentação).
 - **Sensores Lidar:** O carro emite 5 raios virtuais para medir a distância de obstáculos.
@@ -27,7 +27,7 @@ Este é o núcleo do projeto. Ele contém:
 Uma ferramenta visual para criar novos cenários:
 - **Desenhar Prédios:** Clique e arraste para posicionar obstáculos.
 - **Checkpoints:** Define o caminho que a IA deve aprender a seguir.
-- **Exportação:** Gera automaticamente o código Python das listas `obstacles` e `checkpoints` para você colar no seu `app.py`.
+- **Exportação:** Gera automaticamente o código Python das listas `obstacles` e `checkpoints` para você colar no seu `car_rl.py`.
 
 ### 📊 3. `index.html` (O Simulador em Tempo Real)
 A interface onde você assiste à IA "ganhando vida":
@@ -54,7 +54,7 @@ A interface onde você assiste à IA "ganhando vida":
 
 2.  **Inicie o servidor de treinamento:**
     ```bash
-    python app.py
+    python car_rl.py
     ```
 
 3.  **Acompanhe o progresso:**
