@@ -1,0 +1,12 @@
+1. Simulação de sensores:
+Para "enxergar", o carro utiliza um sistema de Lidar. São 5 raios que medem a distância para os obstáculos em tempo real. Esses dados, somados à velocidade e à direção do alvo, formam o vetor de observação. É através desses números que a IA percebe quão perto está de uma colisão.
+
+2. Algoritmo PPO:
+Utilizei o PPO (Proximal Policy Optimization), um algoritmo que equilibra a tentativa de coisas novas e a repetição do que deu certo. Ele opera em um espaço de ações contínuas, decidindo não apenas "virar", mas o ângulo exato do volante e a pressão no acelerador.
+
+3. Recompensas e Perdas (Reward Shaping):
+O agente recebe pontos por cada centímetro que avança em direção ao próximo checkpoint. Ao atingir uma meta, recebe um bônus extra. Colisões geram penalidades pesadas, forçando a IA a entender a segurança. Uma pequena penalidade por tempo garante que o carro não fique parado; ele aprende a ser rápido e preciso.
+
+No início, o carro age de forma caótica. Mas, após milhares de iterações, ele acerta uma curva por puro acaso e recebe uma grande recompensa. Nesse instante, o algoritmo processa os dados e "pensa": "Opa, o que eu fiz agora foi muito bom, vou repetir isso!". É aqui que as conexões neurais se fortalecem e a autonomia acontece.
+
+Para ambientes desconhecidos e para evitar o "overfitting" (decorar o mapa), o próximo nível envolve a geração de prédios e curvas aleatoriamente a cada reset, forçando a IA a aprender conceitos de direção, e não apenas o traçado e adicionar câmeras e GPS para uma percepção 360º.

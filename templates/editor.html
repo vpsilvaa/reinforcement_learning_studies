@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Editor de Mapas - IA Autonomous Car</title>
+    <style>
+        body { background: #222; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; }
+        canvas { background: #7db152; border: 2px solid #fff; cursor: crosshair; margin-top: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .toolbar { background: #333; padding: 15px; width: 1000px; display: flex; gap: 10px; align-items: center; border-bottom: 2px solid #555; }
+        button { padding: 10px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; }
+        .btn-obs { background: #b38b6d; color: white; }
+        .btn-ckpt { background: #ffeb3b; color: black; }
+        .btn-clear { background: #f44336; color: white; }
+        .btn-export { background: #39ff14; color: black; margin-left: auto; }
+        .output-area { width: 1000px; margin-top: 20px; }
+        textarea { width: 100%; height: 150px; background: #000; color: #39ff14; font-family: monospace; padding: 10px; border: 1px solid #555; }
+        .active { outline: 3px solid white; }
+    </style>
+</head>
+<body>
+
+    <div class="toolbar">
+        <button id="modeObs" class="btn-obs active">DIBUJAR PRÉDIO (Arraste)</button>
+        <button id="modeCkpt" class="btn-ckpt">COLOCAR CHECKPOINT (Clique)</button>
+        <button id="clearAll" class="btn-clear">LIMPAR TUDO</button>
+        <span id="info">Modo: Desenhar Prédio</span>
+        <button id="exportBtn" class="btn-export">GERAR CÓDIGO PYTHON</button>
+    </div>
+
+    <canvas id="editorCanvas" width="1000" height="600"></canvas>
+
+    <div class="output-area">
+        <h3>Código para o app.py:</h3>
+        <textarea id="outputCode" readonly placeholder="O código aparecerá aqui ao clicar em Gerar..."></textarea>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('editorCanvas');
+        const ctx = canvas.getContext('2d');
+        const output = document.getElementById('outputCode');
+        
+        let mode = 'OBS'; // OBS ou CKPT
+        let obstacles = [];
+        let checkpoints = [];
+        let isDrawing = false;
+        let startX, startY;
+
+        // alternar modos
+        document.getElementById('modeObs').onclick = () => { mode = 'OBS'; updateUI(); };
+        document.getElementById('modeCkpt').onclick = () => { mode = 'CKPT'; updateUI(); };
+        document.getElementById('clearAll').onclick = () => { obstacles = []; checkpoints = []; render(); };
+
+        function updateUI() {
+            document.getElementById('modeObs').classList.toggle('active', mode === 'OBS');
+            document.getElementById('modeCkpt').classList.toggle('active', mode === 'CKPT');
+            document.getElementById('info').innerText = mode === 'OBS' ? "Modo: Desenhar Prédio (Clique e Arraste)" : "Modo: Colocar Checkpoint (Clique)";
+        }
+
+        canvas.onmousedown = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            startX = e.clientX - rect.left;
+            startY = e.clientY - rect.top;
+
+            if (mode === 'CKPT') {
+                checkpoints.push({x: startX, y: startY});
+                render();
+            } else {
+                isDrawing = true;
+            }
+        };
+
+        canvas.onmousemove = (e) => {
+            if (!isDrawing) return;
+            render();
+            const rect = canvas.getBoundingClientRect();
+            let currX = e.clientX - rect.left;
+            let currY = e.clientY - rect.top;
+            
+            // desenha o preview do prédio
+            ctx.strokeStyle = "white";
+            ctx.strokeRect(startX, startY, currX - startX, currY - startY);
+        };
+
+        canvas.onmouseup = (e) => {
+            if (!isDrawing) return;
+            isDrawing = false;
+            const rect = canvas.getBoundingClientRect();
+            let endX = e.clientX - rect.left;
+            let endY = e.clientY - rect.top;
+
+            let w = endX - startX;
+            let h = endY - startY;
+
+            if (Math.abs(w) > 5 && Math.abs(h) > 5) {
+                // ajusta se arrastar para trás
+                obstacles.push({
+                    x: w > 0 ? startX : endX,
+                    y: h > 0 ? startY : endY,
+                    w: Math.abs(w),
+                    h: Math.abs(h)
+                });
+            }
+            render();
+        };
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // desenhar estrada visual simples unindo checkpoints
+            if (checkpoints.length > 1) {
+                ctx.strokeStyle = "rgba(0,0,0,0.2)";
+                ctx.lineWidth = 80;
+                ctx.lineJoin = "round"; ctx.lineCap = "round";
+                ctx.beginPath();
+                ctx.moveTo(checkpoints[0].x, checkpoints[0].y);
+                for(let i=1; i<checkpoints.length; i++) ctx.lineTo(checkpoints[i].x, checkpoints[i].y);
+                ctx.stroke();
+            }
+
+            // desenhar prédios
+            obstacles.forEach(o => {
+                ctx.fillStyle = "#b38b6d";
+                ctx.fillRect(o.x, o.y, o.w, o.h);
+                ctx.strokeStyle = "#444";
+                ctx.strokeRect(o.x, o.y, o.w, o.h);
+            });
+
+            // desenhar checkpoints
+            checkpoints.forEach((c, i) => {
+                ctx.fillStyle = i === checkpoints.length - 1 ? "red" : "yellow";
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, 10, 0, Math.PI*2);
+                ctx.fill();
+                ctx.fillStyle = "black";
+                ctx.fillText(i, c.x-3, c.y+3);
+            });
+        }
+
+        document.getElementById('exportBtn').onclick = () => {
+            let obsCode = "self.obstacles = [\n";
+            obstacles.forEach(o => {
+                obsCode += `    {"x": ${Math.round(o.x)}, "y": ${Math.round(o.y)}, "w": ${Math.round(o.w)}, "h": ${Math.round(o.h)}},\n`;
+            });
+            obsCode += "]\n\n";
+
+            let ckptCode = "self.checkpoints = [\n";
+            checkpoints.forEach(c => {
+                ckptCode += `    {"x": ${Math.round(c.x)}, "y": ${Math.round(c.y)}},\n`;
+            });
+            ckptCode += "]";
+
+            output.value = obsCode + ckptCode;
+            output.select();
+            alert("Código gerado! Copie da caixa preta e cole no seu app.py");
+        };
+
+        render();
+    </script>
+</body>
+</html>
